@@ -898,8 +898,12 @@ function renderCoins() {
   const coin   = el("button",{class:"coin-btn"},"投掷");
   const list   = el("div",{class:"yao-list"});
 
+  // 局部状态：不触发全局 render()，直接操作 DOM
+  let localThrows = [];
+  let localSpinning = false;
+
   function updateStatus() {
-    const n = state.coinThrows.length;
+    const n = localThrows.length;
     status.textContent = n<6 ? `投掷第 ${n+1} 爻，共六爻` : "六爻已毕，正在推算…";
   }
   updateStatus();
@@ -922,21 +926,22 @@ function renderCoins() {
   }
 
   coin.addEventListener("click",()=>{
-    if(state.coinThrows.length>=6||state.coinSpinning) return;
-    setState({coinSpinning:true});
+    if(localThrows.length>=6 || localSpinning) return;
+    localSpinning = true;
     coin.classList.add("spinning");
     setTimeout(()=>{
       const coins=[Math.random()>.5?3:2,Math.random()>.5?3:2,Math.random()>.5?3:2];
-      const next=[...state.coinThrows,coins];
-      state.coinThrows=next;
-      state.coinSpinning=false;
+      localThrows.push(coins);
+      localSpinning = false;
       coin.classList.remove("spinning");
-      addYaoRow(coins,next.length-1);
+      addYaoRow(coins, localThrows.length-1);
       updateStatus();
-      if(next.length===6){
+      if(localThrows.length===6){
         coin.disabled=true;
         coin.textContent="完";
-        setTimeout(()=>setState({page:"result",result:divineCoins(next)}),600);
+        // 同步到全局 state 再跳转结果页
+        state.coinThrows = localThrows.slice();
+        setTimeout(()=>setState({page:"result",result:divineCoins(localThrows)}),600);
       }
     },650);
   });
