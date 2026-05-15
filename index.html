@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>周易卜算</title>
+<style>
+  :root {
+    --gold: #c8a84b;
+    --gold-bright: #e8c96a;
+    --gold-dim: rgba(200,168,75,0.45);
+    --gold-faint: rgba(200,168,75,0.18);
+    --gold-ultra: rgba(200,168,75,0.06);
+    --bg: #070503;
+    --text: #c8a84b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'STKaiti','KaiTi','SimKai','Noto Serif SC',serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image:
+      radial-gradient(ellipse at 15% 15%, rgba(200,168,75,0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 85%, rgba(200,168,75,0.02) 0%, transparent 50%);
+  }
+  #app {
+    width: 100%;
+    max-width: 500px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── 顶栏 ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--gold-faint);
+  }
+  .topbar-title {
+    font-size: 11px;
+    letter-spacing: 7px;
+    color: var(--gold-dim);
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--gold-dim);
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 2px;
+    font-family: inherit;
+    padding: 4px 0;
+  }
+  .spacer { width: 48px; }
+
+  /* ── 主内容区 ── */
+  .content {
+    padding: 0 20px 60px;
+    flex: 1;
+  }
+
+  /* ── 首页 ── */
+  .home-hero {
+    text-align: center;
+    padding: 36px 0 32px;
+  }
+  .home-symbol {
+    font-size: 58px;
+    animation: float 4s ease-in-out infinite;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .home-title {
+    font-size: 24px;
+    letter-spacing: 8px;
+    margin-bottom: 6px;
+  }
+  .home-sub {
+    font-size: 10px;
+    color: rgba(200,168,75,0.4);
+    letter-spacing: 3px;
+  }
+  .method-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .method-btn {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 22px;
+    background: var(--gold-ultra);
+    border: 1px solid var(--gold-faint);
+    cursor: pointer;
+    color: var(--text);
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.2s, border-color 0.2s;
+    animation: fadeIn 0.5s ease both;
+    width: 100%;
+  }
+  .method-btn:hover {
+    background: rgba(200,168,75,0.09);
+    border-color: rgba(200,168,75,0.4);
+  }
+  .method-icon {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(200,168,75,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .method-label { font-size: 15px; letter-spacing: 3px; margin-bottom: 3px; }
+  .method-desc  { font-size: 10px; color: var(--gold-dim); letter-spacing: 2px; }
+  .method-arrow { margin-left: auto; color: rgba(200,168,75,0.3); font-size: 14px; }
+  .home-footer {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 10px;
+    color: rgba(200,168,75,0.22);
+    letter-spacing: 3px;
+  }
+
+  /* ── 输入页 ── */
+  .section-head {
+    text-align: center;
+    padding: 28px 0 28px;
+  }
+  .section-title { font-size: 18px; letter-spacing: 6px; margin-bottom: 8px; }
+  .section-sub   { font-size: 10px; color: var(--gold-dim); letter-spacing: 2px; }
+
+  .field-label {
+    font-size: 10px;
+    color: var(--gold-dim);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .text-input {
+    width: 100%;
+    padding: 14px;
+    background: var(--gold-ultra);
+    border: 1px solid rgba(200,168,75,0.3);
+    color: var(--text);
+    font-size: 20px;
+    letter-spacing: 4px;
+    text-align: center;
+    outline: none;
+    font-family: inherit;
+    margin-bottom: 0;
+  }
+  .text-input::placeholder { color: rgba(200,168,75,0.22); }
+  .text-input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .tz-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    border: 1px solid var(--gold-faint);
+    background: var(--gold-ultra);
+  }
+  .tz-badge-icon { font-size: 14px; color: var(--gold-dim); }
+  .tz-badge-label { font-size: 10px; color: rgba(200,168,75,0.4); letter-spacing: 2px; }
+  .tz-badge-value { font-size: 12px; color: var(--text); letter-spacing: 1px; margin-top: 2px; }
+
+  .main-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 15px;
+    background: rgba(200,168,75,0.09);
+    border: 1px solid rgba(200,168,75,0.4);
+    color: var(--text);
+    font-size: 13px;
+    letter-spacing: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .main-btn:hover { background: rgba(200,168,75,0.15); }
+  .main-btn:disabled {
+    background: rgba(200,168,75,0.02);
+    border-color: rgba(200,168,75,0.12);
+    color: rgba(200,168,75,0.25);
+    cursor: not-allowed;
+  }
+  .main-btn.ghost { opacity: 0.55; }
+
+  /* ── 铜钱 ── */
+  .coin-status {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gold-dim);
+    letter-spacing: 3px;
+    margin-bottom: 24px;
+  }
+  .coin-wrap { text-align: center; }
+  .coin-btn {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: var(--gold-ultra);
+    color: var(--text);
+    font-size: 13px; letter-spacing: 2px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.6s cubic-bezier(.4,2,.6,1), background 0.3s;
+    box-shadow: 0 0 24px rgba(200,168,75,0.15);
+    outline: none;
+  }
+  .coin-btn.spinning {
+    transform: scale(0.9) rotate(180deg);
+    background: rgba(200,168,75,0.2);
+  }
+  .coin-btn:disabled { cursor: default; }
+  .yao-list { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
+  .yao-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px;
+    border: 1px solid var(--gold-faint);
+    background: var(--gold-ultra);
+    animation: fadeIn 0.35s ease both;
+  }
+  .yao-idx  { font-size: 11px; color: rgba(200,168,75,0.4); min-width: 36px; }
+  .yao-face { font-size: 11px; color: var(--gold-dim); }
+  .yao-type { font-size: 12px; letter-spacing: 1px; }
+
+  /* ── 结果页 ── */
+  .result-head {
+    background: rgba(10,8,4,0.95);
+    border: 1px solid var(--gold-faint);
+    padding: 28px 24px;
+    text-align: center;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(200,168,75,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .level-badge {
+    display: inline-block;
+    padding: 2px 14px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    letter-spacing: 4px;
+  }
+  .hex-num   { font-size: 11px; color: var(--gold-dim); letter-spacing: 5px; margin-bottom: 6px; }
+  .hex-sym   { font-size: 48px; margin-bottom: 4px; }
+  .hex-name  { font-size: 26px; letter-spacing: 4px; margin-bottom: 4px; }
+  .hex-nature{ font-size: 11px; color: var(--gold-dim); letter-spacing: 3px; margin-bottom: 20px; }
+
+  .yao-lines {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 9px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .yao-line  { display: flex; gap: 6px; justify-content: center; align-items: center; height: 14px; }
+  .yao-bar   { height: 7px; background: linear-gradient(90deg,#a07830,#e8c96a,#a07830); border-radius: 1px; }
+  .yao-bar.full  { width: 82px; }
+  .yao-bar.half  { width: 36px; }
+  .yao-gap   { width: 10px; }
+
+  .hex-judgment {
+    border-top: 1px solid rgba(200,168,75,0.15);
+    padding-top: 16px;
+    font-size: 13px;
+    color: var(--text);
+    letter-spacing: 3px;
+  }
+  .hex-judgment-label { color: rgba(200,168,75,0.4); font-size: 10px; letter-spacing: 3px; }
+
+  /* Tab */
+  .tabs { display: flex; gap: 1px; margin-bottom: 1px; }
+  .tab-btn {
+    flex: 1; padding: 10px 0;
+    border: 1px solid var(--gold-faint);
+    background: var(--gold-ultra);
+    color: rgba(200,168,75,0.4);
+    font-size: 11px; letter-spacing: 2px;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: rgba(200,168,75,0.12);
+    border-color: rgba(200,168,75,0.4);
+    color: var(--text);
+  }
+  .tab-panel {
+    background: rgba(10,8,4,0.92);
+    border: 1px solid var(--gold-faint);
+    padding: 24px;
+    min-height: 160px;
+    animation: fadeIn 0.3s ease;
+  }
+  .tab-section-label {
+    font-size: 11px;
+    color: rgba(200,168,75,0.4);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .tab-text {
+    font-size: 13px;
+    color: rgba(220,200,150,0.88);
+    line-height: 2.2;
+    letter-spacing: 1px;
+  }
+  .classical-block {
+    font-size: 13px;
+    color: rgba(200,168,75,0.85);
+    line-height: 2.2;
+    letter-spacing: 1px;
+    padding: 12px;
+    border-left: 2px solid rgba(200,168,75,0.3);
+    background: rgba(200,168,75,0.03);
+    margin-bottom: 20px;
+  }
+  .advice-block {
+    font-size: 14px;
+    line-height: 2.4;
+    letter-spacing: 1px;
+    padding: 16px;
+  }
+  .advice-footer {
+    margin-top: 16px;
+    font-size: 11px;
+    color: rgba(200,168,75,0.3);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  /* ── 动画 ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-7px); }
+  }
+  @keyframes yaoAppear {
+    from { opacity: 0; transform: scaleX(0.5); }
+    to   { opacity: 1; transform: scaleX(1); }
+  }
+
+  .fade-in { animation: fadeIn 0.5s ease both; }
+
+  /* ── 滚动条 ── */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: rgba(200,168,75,0.25); }
+
+  input[type="datetime-local"] { color-scheme: dark; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <button class="back-btn" id="backBtn" style="visibility:hidden">← 返回</button>
+    <div class="topbar-title">周易卜算</div>
+    <div class="spacer"></div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// 六十四卦数据
+// ════════════════════════════════════════════════
+const HEXAGRAMS = [
+  { num:1,  name:"乾",  symbol:"䷀", nature:"天",   judgment:"元亨利贞",
+    classical:"《彖》曰：大哉乾元，万物资始，乃统天。云行雨施，品物流形。大明终始，六位时成，时乘六龙以御天。乾道变化，各正性命，保合大和，乃利贞。",
+    translation:"乾卦代表阳刚创始之力。万物借此元气而发生，统御天道。云行雨施，万物各得其形。乾道运行变化，使万物各安其性，保持最高和谐，方为正道。",
+    modern:"此卦象征强健进取、自强不息之精神。如日月运行不止，君子当效法天道，持续奋发，以刚健之志开创事业。",
+    advice:"时运昌盛，宜积极进取，展现才华。但切记刚健之余不失中正，过刚则折，须知进退之道。", level:"大吉" },
+  { num:2,  name:"坤",  symbol:"䷁", nature:"地",   judgment:"元亨，利牝马之贞",
+    classical:"《彖》曰：至哉坤元，万物资生，乃顺承天。坤厚载物，德合无疆；含弘光大，品物咸亨。",
+    translation:"坤卦代表大地之德，万物依此而生长，顺承天道。大地宽厚承载万物，德行无边无际；包容宏大，使万物皆能亨通。",
+    modern:"此卦象征包容、顺从与厚德。如大地默默承载万物，以柔克刚，以静制动。",
+    advice:"宜守柔顺，以德服人，广结善缘。不宜急于争先，以静待动，厚积方能薄发，终有所成。", level:"吉" },
+  { num:3,  name:"屯",  symbol:"䷂", nature:"水雷", judgment:"元亨利贞，勿用有攸往",
+    classical:"《彖》曰：屯，刚柔始交而难生。动乎险中，大亨贞。雷雨之动满盈，天造草昧，宜建侯而不宁。",
+    translation:"屯卦，刚与柔刚开始交合而艰难产生。在险难中行动，但终将大亨通。如雷雨充满天地，初创之世混沌未明，宜建立根基而不宜轻动。",
+    modern:"此卦象征万事初创之艰辛，如草木破土而出，需克服重重阻碍。",
+    advice:"正处于艰难起步阶段，宜沉稳应对，广结贵人，循序渐进。切勿急于冒进，稳扎稳打方能度过初创之困。", level:"中" },
+  { num:4,  name:"蒙",  symbol:"䷃", nature:"山水", judgment:"亨，匪我求童蒙，童蒙求我",
+    classical:"《彖》曰：蒙，山下有险，险而止，蒙。蒙亨，以亨行时中也。匪我求童蒙，童蒙求我，志应也。",
+    translation:"蒙卦，山下有险阻，遭险而止步，此乃蒙昧之象。蒙昧中求亨通，在于把握时机行中道。非是我去求教蒙童，而是蒙童来求教于我，志向相应方能成就。",
+    modern:"此卦象征启蒙学习之时，如泉水初涌，需要引导方向。",
+    advice:"此时宜虚心求教，向有经验者请益。学习需有恒心，不耻下问，明师益友可指引正路，切忌固执自用。", level:"中" },
+  { num:5,  name:"需",  symbol:"䷄", nature:"水天", judgment:"有孚，光亨贞吉，利涉大川",
+    classical:"《彖》曰：需，须也。险在前也，刚健而不陷，其义不困穷矣。需有孚，光亨贞吉，位乎天位，以正中也。",
+    translation:"需卦意为等待。前方有险阻，刚健之人不会陷入其中，故其义不会穷途末路。等待中保持诚信，光明亨通而守正得吉，处于天位，以正中之道行事。",
+    modern:"此卦象征积极等待、蓄势待发之时机，如乌云蔽日终将散去，雨后必有晴天。",
+    advice:"时机尚未成熟，宜耐心等候，养精蓄锐。以诚信之心静待良机，切忌焦躁冒进，机会到来时自然一帆风顺。", level:"中" },
+  { num:6,  name:"讼",  symbol:"䷅", nature:"天水", judgment:"有孚，窒惕中吉，终凶",
+    classical:"《彖》曰：讼，上刚下险，险而健，讼。讼有孚窒惕，中吉，刚来而得中也。终凶，讼不可成也。",
+    translation:"讼卦，上为刚健，下有险阻，遇险而刚健，故生争讼。争讼中有诚信但受阻，保持警惕可得中吉；若争讼到底则有凶险，因为争讼不可成为定局。",
+    modern:"此卦提示争端纷起，双方皆有理据，但争讼难有完全胜者。",
+    advice:"遇到纠纷宜以和为贵，寻求调解协商。若不得不诉诸正式途径，亦需保持理性克制，切忌得理不饶人，以退一步海阔天空之心化解矛盾。", level:"注意" },
+  { num:7,  name:"师",  symbol:"䷆", nature:"地水", judgment:"贞，丈人吉无咎",
+    classical:"《彖》曰：师，众也。贞，正也。能以众正，可以王矣。刚中而应，行险而顺，以此毒天下而民从之，吉又何咎矣。",
+    translation:"师卦，师者众也。守正方为正道。能以正道统领众人，可成就王者之业。刚中有应，虽行于险难之中而能顺势，以此教化天下而民众归从，自然吉祥无咎。",
+    modern:"此卦象征领导统御之道，以纪律与正道凝聚团队力量。",
+    advice:"领导之道在于公正严明，以德服人。团队需纪律有序，方向需正确清晰，以正义之名带领众人，方能成就大事。", level:"中" },
+  { num:8,  name:"比",  symbol:"䷇", nature:"水地", judgment:"吉，原筮元永贞无咎",
+    classical:"《彖》曰：比，吉也。比，辅也。下顺从也。原筮元永贞无咎，以刚中也。不宁方来，上下应也。",
+    translation:"比卦，吉祥。比者，亲辅也，下位顺从之象。诚心占问，元始长久守正无过失，因为刚中之道。不安之人前来归附，上下相应和合。",
+    modern:"此卦象征亲密合作、互助协作之道，如水附于地，自然融合。",
+    advice:"广结善缘，真诚待人，寻求志同道合的伙伴。团结协作远胜单打独斗，以诚信为基础建立深厚的人际关系，可共渡任何难关。", level:"吉" },
+  { num:9,  name:"小畜",symbol:"䷈", nature:"风天", judgment:"亨，密云不雨",
+    classical:"《彖》曰：小畜，柔得位而上下应之，曰小畜。健而巽，刚中而志行，乃亨。密云不雨，尚往也。自我西郊，施未行也。",
+    translation:"小畜卦，柔爻得位而上下相应，故称小畜。刚健而又顺从，刚中之道而志向得行，方能亨通。密云未雨，阳气尚在上行。",
+    modern:"此卦象征小有积累，蓄力待发之阶段，如乌云密布却尚未降雨。",
+    advice:"积累阶段需耐心，循序渐进方为上策。切忌急于求成，持续积蓄实力与资源，厚积终将薄发，时机成熟自然水到渠成。", level:"中" },
+  { num:10, name:"履",  symbol:"䷉", nature:"天泽", judgment:"履虎尾，不咥人亨",
+    classical:"《彖》曰：履，柔履刚也。说而应乎乾，是以履虎尾，不咥人亨。刚中正，履帝位而不疚，光明也。",
+    translation:"履卦，以柔踩刚之道。以喜悦之心顺应乾道，因此踩在虎尾上而不被咬，得以亨通。刚中守正，居于帝位而无愧疚，光明磊落。",
+    modern:"此卦象征谨慎行事、以礼化险之道，在危险中保持礼仪与从容。",
+    advice:"处于危险或敏感处境中，需谨慎小心，以礼待人。保持从容态度，以诚信和礼仪化解潜在危机，光明正大方能逢凶化吉。", level:"中" },
+  { num:11, name:"泰",  symbol:"䷊", nature:"地天", judgment:"小往大来，吉亨",
+    classical:"《彖》曰：泰，小往大来，吉亨，则是天地交而万物通也，上下交而其志同也。",
+    translation:"泰卦，小者往而大者来，吉祥亨通，这是天地相交而万物皆通达，上下相交而志向相同之象。",
+    modern:"此卦象征最美好的时运，天地交泰，阴阳调和，万事顺遂。",
+    advice:"正处于大好时机，宜积极把握，广施恩德。顺势而为，不可骄傲自满，以感恩之心回馈他人，方能福泽绵长。", level:"大吉" },
+  { num:12, name:"否",  symbol:"䷋", nature:"天地", judgment:"否之匪人，不利君子贞",
+    classical:"《彖》曰：否之匪人，不利君子贞，大往小来，则是天地不交而万物不通也，上下不交而天下无邦也。",
+    translation:"否卦，闭塞之时非君子当道，不利于君子守正，大者往而小者来，这是天地不相交而万物不通达之象。",
+    modern:"此卦象征阻滞闭塞之时，小人当道，君子需韬光养晦。",
+    advice:"时运不济，宜保持低调，切勿强行冒进。此时正是积蓄实力、修身养德之良机。静待时机转变，守正不阿，逆境终将过去，否极泰来是天道之必然。", level:"注意" },
+  { num:13, name:"同人",symbol:"䷌", nature:"天火", judgment:"同人于野亨，利涉大川",
+    classical:"《彖》曰：同人，柔得位得中，而应乎乾，曰同人。同人于野亨，利涉大川，乾行也。",
+    translation:"同人卦，柔爻得位守中，顺应乾道，故称同人。与人同心于旷野则亨通，利于渡越大川，这是乾道之行。",
+    modern:"此卦象征开诚布公、广结同道、天下大同之理想。",
+    advice:"以公心待人，超越小团体之私利，广泛团结志同道合者。真诚合作，相互尊重，开诚布公可成就大事，利人利己。", level:"吉" },
+  { num:14, name:"大有",symbol:"䷍", nature:"火天", judgment:"元亨",
+    classical:"《彖》曰：大有，柔得尊位大中，而上下应之，曰大有。其德刚健而文明，应乎天而时行，是以元亨。",
+    translation:"大有卦，柔爻得尊贵之位居大中，上下皆与之相应，故称大有。其德刚健而又文明，顺应天道而适时行事，因此元始亨通。",
+    modern:"此卦象征大有所获、丰盛昌隆之象，如日照四方，光辉普照。",
+    advice:"正值丰收之时，宜怀感恩之心，广施恩惠。富贵之时不忘回馈社会，谦逊待人，守正不阿，方能保持长久的昌盛与福祉。", level:"大吉" },
+  { num:15, name:"谦",  symbol:"䷎", nature:"地山", judgment:"亨，君子有终",
+    classical:"《彖》曰：谦，亨，天道下济而光明，地道卑而上行。天道亏盈而益谦，地道变盈而流谦，鬼神害盈而福谦，人道恶盈而好谦。",
+    translation:"谦卦，亨通。天道向下施济而光明，地道处卑而向上运行。天道、地道、鬼神、人道皆偏爱谦逊而厌恶盈满。",
+    modern:"此卦象征谦逊内敛之美德，山藏于地下，以谦逊显示真正的高大。",
+    advice:"谦逊是处世最高智慧。不论处于何种境地，保持谦逊之心，以德服人，不骄不躁。天道、地道、人道皆偏爱谦逊之人，终有圆满之果。", level:"吉" },
+  { num:16, name:"豫",  symbol:"䷏", nature:"雷地", judgment:"利建侯行师",
+    classical:"《彖》曰：豫，刚应而志行，顺以动，豫。豫顺以动，故天地如之，而况建侯行师乎？",
+    translation:"豫卦，刚爻有所应和而志向得行，以顺从之道而行动，此为豫。以顺从之道行动，连天地都如此，何况建立诸侯、出师行军呢？",
+    modern:"此卦象征顺势而为、和乐振奋之时，如春雷一声万物苏醒。",
+    advice:"顺应天时人心，以积极乐观之态激励众人。把握时机，鼓舞士气，以正能量带动周围，此时行动事半功倍。", level:"吉" },
+  { num:17, name:"随",  symbol:"䷐", nature:"泽雷", judgment:"元亨利贞无咎",
+    classical:"《彖》曰：随，刚来而下柔，动而说，随。大亨贞无咎，而天下随时。随之时义大矣哉！",
+    translation:"随卦，刚爻来而居于柔爻之下，行动而喜悦，此为随。大亨通守正无咎，天下随时而变。随时之义是多么重大啊！",
+    modern:"此卦象征顺势应变、灵活变通之智慧，随时而动，不拘一格。",
+    advice:"顺应时势变化，灵活调整策略，不可固守成规。随机应变并非随波逐流，而是在守正的前提下顺势而为，把握每一个当下的机遇。", level:"吉" },
+  { num:18, name:"蛊",  symbol:"䷑", nature:"山风", judgment:"元亨，利涉大川",
+    classical:"《彖》曰：蛊，刚上而柔下，巽而止，蛊。蛊元亨，而天下治也。利涉大川，往有事也。",
+    translation:"蛊卦，刚在上而柔在下，顺从而止，此为蛊。蛊卦元始亨通，天下因此得到治理。利于渡越大川，前往是有所事功。",
+    modern:"此卦象征旧弊积累已深，需要整顿革新，破旧立新方有生机。",
+    advice:"面对积累已久的问题，需要勇气和决心进行彻底整顿。不可回避矛盾，正视问题根源，制定周全计划，大刀阔斧改革，方能获得新生。", level:"中" },
+  { num:19, name:"临",  symbol:"䷒", nature:"地泽", judgment:"元亨利贞，至于八月有凶",
+    classical:"《彖》曰：临，刚浸而长，说而顺，刚中而应，大亨以正，天之道也。至于八月有凶，消不久也。",
+    translation:"临卦，刚爻逐渐增长，喜悦而顺从，刚中有应，大亨通守正，此乃天道。到了八月有凶险，是因为阳气消退不会长久。",
+    modern:"此卦象征亲临在位、主动关怀之时，但需居安思危，防盛极而衰。",
+    advice:"此时宜亲力亲为，关怀下属，主动承担责任。在顺境中更需保持警觉，凡事有度，防止骄傲自满，盛极必衰是自然规律，须居安思危。", level:"中" },
+  { num:20, name:"观",  symbol:"䷓", nature:"风地", judgment:"盥而不荐，有孚顒若",
+    classical:"《彖》曰：大观在上，顺而巽，中正以观天下。观，盥而不荐，有孚顒若，下观而化也。",
+    translation:"观卦，伟大的观察居于上位，以顺从和谦逊，以中正之道观察天下。洗手行礼而不急于献祭，诚信庄严，这是下民观仰而被教化之象。",
+    modern:"此卦象征深思熟虑、静观其变之智慧，在行动前充分观察。",
+    advice:"此时宜静观其变，深思熟虑，广泛收集信息后再作决策。以客观理性之心观察形势，避免冲动行事，充分准备之后的行动必然更加有效。", level:"中" },
+  { num:21, name:"噬嗑",symbol:"䷔", nature:"火雷", judgment:"亨，利用狱",
+    classical:"《彖》曰：颐中有物，曰噬嗑。噬嗑而亨，刚柔分，动而明，雷电合而章，柔得中而上行，虽不当位，利用狱也。",
+    translation:"噬嗑卦，口中有物阻碍，需要咬合，故称噬嗑。噬嗑而亨通，刚柔分明，行动而明察，雷与电合而章法彰显。",
+    modern:"此卦象征必须果断清除障碍、解决问题，不可姑息拖延。",
+    advice:"面对阻碍或问题，需要果断决断，清除障碍。以公正之心处理纠纷，不偏不倚，该决断时不可犹豫，以正义之名排除万难，问题方能彻底解决。", level:"中" },
+  { num:22, name:"贲",  symbol:"䷕", nature:"山火", judgment:"亨，小利有攸往",
+    classical:"《彖》曰：贲亨，柔来而文刚，故亨。分刚上而文柔，故小利有攸往，天文也；文明以止，人文也。",
+    translation:"贲卦，亨通。柔爻来而文饰刚爻，故亨通。以文明而有所节止，这是人文之道。",
+    modern:"此卦象征文采修饰、内外兼修之道，注重形式与内涵的结合。",
+    advice:"注重内外兼修，提升个人素养与形象。文化涵养是最好的投资，以真诚为本，以文明为表，内外相符方能真正打动人心。", level:"吉" },
+  { num:23, name:"剥",  symbol:"䷖", nature:"山地", judgment:"不利有攸往",
+    classical:"《彖》曰：剥，剥也，柔变刚也。不利有攸往，小人长也。顺而止之，观象也。君子尚消息盈虚，天行也。",
+    translation:"剥卦，剥落之象，柔爻侵蚀刚爻。不利于前往，是小人势力增长之象。君子重视消长盈虚之变化，这是天道运行之规律。",
+    modern:"此卦象征剥蚀消减之时，需要退守保全，等待转机。",
+    advice:"此时形势对己不利，宜退守保全，切勿强行冒进。静下心来审视局势，保存实力，修身养德。此乃暂时之困，物极必反，坚守正道终会迎来转机。", level:"注意" },
+  { num:24, name:"复",  symbol:"䷗", nature:"地雷", judgment:"亨，出入无疾，朋来无咎",
+    classical:"《彖》曰：复亨，刚反，动而以顺行，是以出入无疾，朋来无咎。反复其道，七日来复，天行也。",
+    translation:"复卦，亨通。刚爻回归，行动而以顺从之道进行，因此出入没有疾患，朋友来临无过失。道路往复，七日而复，这是天道之运行。",
+    modern:"此卦象征否极泰来、重新出发之吉兆，一阳来复，生机重现。",
+    advice:"困境已过，阳气回升，正是重新出发的好时机。以新的心态面对，汲取过去经验，坚定信心向前迈进，万物复苏之象征着无限可能。", level:"吉" },
+  { num:25, name:"无妄",symbol:"䷘", nature:"天雷", judgment:"元亨利贞",
+    classical:"《彖》曰：无妄，刚自外来而为主于内，动而健，刚中而应，大亨以正，天之命也。",
+    translation:"无妄卦，刚爻自外而来成为内卦之主，行动而刚健，刚中有应，大亨通守正，这是天命所归。",
+    modern:"此卦象征顺应自然、去除妄念、回归本真之道。",
+    advice:"顺应自然规律，不妄作妄为，以诚实守信为立身之本。去除不切实际的幻想，脚踏实地，做真实的自己，凡事顺其自然，反而能获得意想不到的收获。", level:"吉" },
+  { num:26, name:"大畜",symbol:"䷙", nature:"山天", judgment:"利贞，不家食吉",
+    classical:"《彖》曰：大畜，刚健笃实辉光，日新其德，刚上而尚贤，能止健，大正也。",
+    translation:"大畜卦，刚健笃实而光辉，日日更新其德行，刚爻居上而崇尚贤人，能够止住刚健之势，此为大正之道。",
+    modern:"此卦象征大量积蓄、厚积薄发之时，如山中积蓄天之精华。",
+    advice:"正是积累知识、资源与经验的重要时期。广泛学习，深厚积累，不急于展示成果。厚积之后的薄发才是最有力量的，此时的付出将来必有丰厚回报。", level:"吉" },
+  { num:27, name:"颐",  symbol:"䷚", nature:"山雷", judgment:"贞吉，观颐，自求口实",
+    classical:"《彖》曰：颐贞吉，养正则吉也。观颐，观其所养也；自求口实，观其自养也。天地养万物，圣人养贤以及万民。",
+    translation:"颐卦守正则吉，滋养正道则得吉。天地养育万物，圣人养育贤才以惠及万民，颐养之时义多么重大啊！",
+    modern:"此卦象征颐养身心、慎言节食之道，内外兼修，养正持身。",
+    advice:"重视身心的滋养，注意饮食起居，慎重言语。以正道养育自身，多读书充实内涵，以德行滋养精神，方能身心健康，德行日进。", level:"中" },
+  { num:28, name:"大过",symbol:"䷛", nature:"泽风", judgment:"栋桡，利有攸往亨",
+    classical:"《彖》曰：大过，大者过也。栋桡，本末弱也。刚过而中，巽而说行，利有攸往，乃亨。大过之时义大矣哉！",
+    translation:"大过卦，大者超过常规之象。栋梁弯曲，根本末端皆软弱。刚爻超过而居中，顺从而喜悦地行进，有利于前往，方能亨通。",
+    modern:"此卦象征非常之时需非常之举，超越常规的特殊情况。",
+    advice:"正处于非常时期，需要有魄力采取超常规的行动。但切记过犹不及，超越常规须有明确目标，行事前深思熟虑，以防矫枉过正带来新的问题。", level:"注意" },
+  { num:29, name:"坎",  symbol:"䷜", nature:"水",   judgment:"有孚维心亨，行有尚",
+    classical:"《彖》曰：习坎，重险也。水流而不盈，行险而不失其信，维心亨，乃以刚中也。行有尚，往有功也。",
+    translation:"习坎卦，重重险阻之象。水流而不停滞，行于险难中不失诚信，心中诚信而亨通，这是因为刚中之道。",
+    modern:"此卦象征重重险难，但以诚信和智慧可以化险为夷。",
+    advice:"正面临重重困难，此时最重要的是保持内心的诚信与冷静。如流水般灵活应对，不强行硬闯，寻找最适当的路径绕过险阻。困难终将过去，坚持是最好的答案。", level:"注意" },
+  { num:30, name:"离",  symbol:"䷝", nature:"火",   judgment:"利贞亨，畜牝牛吉",
+    classical:"《彖》曰：离，丽也，日月丽乎天，百谷草木丽乎土，重明以丽乎正，乃化成天下。",
+    translation:"离卦，附丽之象。日月附丽于天，百谷草木附丽于土地，以双重光明附丽于正道，方能教化成就天下。",
+    modern:"此卦象征光明普照、文明昌盛，依附正道发挥才能。",
+    advice:"以光明正大之心行事，依附于正道与贤明之人。充分发挥自身才能，以文明有礼之道待人，光明磊落自然感召众人，可成就不凡之业。", level:"吉" },
+  { num:31, name:"咸",  symbol:"䷞", nature:"泽山", judgment:"亨利贞，取女吉",
+    classical:"《彖》曰：咸，感也，柔上而刚下，二气感应以相与，止而说，男下女，是以亨利贞，取女吉也。",
+    translation:"咸卦，感应之象。柔在上而刚在下，阴阳二气相互感应而交合，止而喜悦，男方处于女方之下，因此亨通守正。",
+    modern:"此卦象征真诚感应、心灵相通之道，以诚心感动天地与他人。",
+    advice:"以真诚之心感应他人，不计较得失，发自内心的善意最能打动人心。感情与人际关系皆以诚为本，真诚的感应比任何技巧都更有力量。", level:"吉" },
+  { num:32, name:"恒",  symbol:"䷟", nature:"雷风", judgment:"亨无咎，利贞利有攸往",
+    classical:"《彖》曰：恒，久也。刚上而柔下，雷风相与，巽而动，刚柔皆应，恒。天地之道恒久而不已也。",
+    translation:"恒卦，持久之象。刚在上而柔在下，雷与风相辅相成，顺从而行动，刚柔皆相应。天地之道恒久而不停止。",
+    modern:"此卦象征持之以恒、坚守正道之美德，如雷风相随，永不停歇。",
+    advice:"坚持不懈是成功的根本。无论遇到何种困难，守住正道而不动摇，持之以恒地努力。天地之道因恒久而伟大，人之事业亦因坚持而成就。", level:"吉" },
+  { num:33, name:"遁",  symbol:"䷠", nature:"天山", judgment:"亨，小利贞",
+    classical:"《彖》曰：遁亨，遁而亨也。刚当位而应，与时行也。小利贞，浸而长也。遁之时义大矣哉！",
+    translation:"遁卦，亨通，退避而得亨通。刚爻居于当位而有所应，随时势而行动。阴柔之势逐渐增长，退遁之时义多么重大啊！",
+    modern:"此卦象征以退为进的智慧，适时退守，保全实力。",
+    advice:"当前形势不利于正面交锋，宜暂时退避，以退为进。这不是退缩，而是智慧的战略撤退。保全实力，等待时机，来日方长，退一步海阔天空。", level:"中" },
+  { num:34, name:"大壮",symbol:"䷡", nature:"雷天", judgment:"利贞",
+    classical:"《彖》曰：大壮，大者壮也，刚以动，故壮，大壮利贞，大者正也。正大而天地之情可见矣！",
+    translation:"大壮卦，大者壮盛，刚爻而行动，故壮大。大壮利于守正，大者当守正道。正大之道可见天地之真情！",
+    modern:"此卦象征阳刚强大、壮盛有力之时，但壮而需守正。",
+    advice:"正值强盛之时，力量充沛。但切记：真正的强大在于以正义之力行事，而非恃强凌弱。以正道运用力量，方能成就真正持久的伟业，避免刚愎自用之失。", level:"吉" },
+  { num:35, name:"晋",  symbol:"䷢", nature:"火地", judgment:"康侯用锡马蕃庶，昼日三接",
+    classical:"《彖》曰：晋，进也，明出地上，顺而丽乎大明，柔进而上行，是以康侯用锡马蕃庶，昼日三接也。",
+    translation:"晋卦，前进上升之象。光明出于地上，顺从而附丽于大明，柔爻前进而向上行，因此安康之侯受到多次赏赐与接见。",
+    modern:"此卦象征光明上升、前途一片光明，如旭日东升照耀大地。",
+    advice:"时运正在上升，前途光明。积极展示才华，把握晋升机遇，以光明正大之道处世，必能获得赏识与提拔。此时行动，事半功倍。", level:"大吉" },
+  { num:36, name:"明夷",symbol:"䷣", nature:"地火", judgment:"利艰贞",
+    classical:"《彖》曰：明入地中，明夷，内文明而外柔顺，以蒙大难，文王以之。利艰贞，晦其明也，内难而能正其志，箕子以之。",
+    translation:"明夷卦，光明进入地中，内心文明而外表柔顺，以此承受大难，文王正是如此处世。隐藏其光明，内有难题而能守正其志，箕子正是如此。",
+    modern:"此卦象征贤者蒙难、韬光养晦之时，如明灯入地，光虽暗而不熄。",
+    advice:"正处逆境之中，如文王、箕子般的贤者也曾遭遇此境。此时宜韬光养晦，外表柔顺而内心坚守正道。坚持信念，光明终将重现，逆境正是磨砺意志的最好时机。", level:"注意" },
+  { num:37, name:"家人",symbol:"䷤", nature:"风火", judgment:"利女贞",
+    classical:"《彖》曰：家人，女正位乎内，男正位乎外。男女正，天地之大义也。家人有严君焉，父母之谓也。",
+    translation:"家人卦，女子正位于内，男子正位于外。男女各守其位，是天地间的大义。家庭中有严正的君主，那就是父母。",
+    modern:"此卦象征家庭和谐、各尽其职之道，以正道治家，家和万事兴。",
+    advice:"重视家庭关系，各守本分，尽好自己的角色责任。以身作则，关爱家人，建立温暖有序的家庭环境。家庭是一切事业的根基，家和则万事顺。", level:"吉" },
+  { num:38, name:"睽",  symbol:"䷥", nature:"火泽", judgment:"小事吉",
+    classical:"《彖》曰：睽，火动而上，泽动而下，二女同居，其志不同行，说而丽乎明，柔进而上行，得中而应乎刚，是以小事吉。",
+    translation:"睽卦，火向上燃烧，泽向下流动，两个女子同居，志向不同而行。喜悦而附丽于光明，居中而应合于刚，因此小事吉祥。",
+    modern:"此卦象征分歧对立、异中求同之时，寻找共识化解矛盾。",
+    advice:"面对分歧与对立，需要以包容之心寻求共同点。虽然在大方向上有所不同，但在小事上仍可合作。减少争执，增加理解，从分歧中寻找新的视角与可能性。", level:"中" },
+  { num:39, name:"蹇",  symbol:"䷦", nature:"水山", judgment:"利西南，不利东北",
+    classical:"《彖》曰：蹇，难也，险在前也，见险而能止，知矣哉！蹇利西南，往得中也；不利东北，其道穷也。",
+    translation:"蹇卦，艰难之象，险阻在前。见到险难而能停止，这是智慧！前往西南方可得中道；东北方则道路穷尽。",
+    modern:"此卦象征行路艰难、重重障碍之时，需寻求外援共克时艰。",
+    advice:"前进之路障碍重重，此时宜寻求有能力者的协助与支持。不可孤军奋战，集思广益，借助外力化解困难。选择正确方向，避开已知险阻，迂回前进。", level:"注意" },
+  { num:40, name:"解",  symbol:"䷧", nature:"雷水", judgment:"利西南，无所往其来复吉",
+    classical:"《彖》曰：解，险以动，动而免乎险，解。解利西南，往得众也。其来复吉，乃得中也。有攸往夙吉，往有功也。",
+    translation:"解卦，遇险而行动，行动而免于险难，此为解。前往可得众人之助。回来复归吉祥，这是居于中道。有所前往则宜早行，前往必有功效。",
+    modern:"此卦象征困难解除、重获新生之吉兆，如春雷滚滚，万物复苏。",
+    advice:"困境即将解除，新的机遇即将到来。宜宽恕既往，不念旧恶，迅速行动把握机遇。以宽广的胸怀重新出发，此时行动必有收获，万象更新正当其时。", level:"吉" },
+  { num:41, name:"损",  symbol:"䷨", nature:"山泽", judgment:"有孚元吉无咎可贞",
+    classical:"《彖》曰：损，损下益上，其道上行。损而有孚，元吉无咎可贞，利有攸往。曷之用，二簋可用享。",
+    translation:"损卦，减损下位以增益上位，其道向上行。减损而有诚信，元始大吉无过失可守正，利于有所前往。",
+    modern:"此卦象征减损小利以获大益，舍得之道，以诚奉献。",
+    advice:"适当的舍弃与付出，反而能获得更大的回报。以诚心奉献，不计较个人得失，减损眼前小利以成就长远大益。舍得舍得，有舍方有得。", level:"中" },
+  { num:42, name:"益",  symbol:"䷩", nature:"风雷", judgment:"利有攸往，利涉大川",
+    classical:"《彖》曰：益，损上益下，民说无疆，自上下下，其道大光。利有攸往，中正有庆。利涉大川，木道乃行。",
+    translation:"益卦，减损上位以增益下位，民众喜悦无边，自上而向下施益，其道大放光明。利于有所前往，居中守正有所庆贺。",
+    modern:"此卦象征广施恩惠、利益众人、回报丰厚之时。",
+    advice:"广施恩惠，帮助他人，以利益众人为先。此时越慷慨，回报越丰厚。以仁爱之心待人，积累良好口碑与人际资源，终将获得远超付出的丰厚回报。", level:"大吉" },
+  { num:43, name:"夬",  symbol:"䷪", nature:"泽天", judgment:"扬于王庭，孚号有厉",
+    classical:"《彖》曰：夬，决也，刚决柔也，健而说，决而和，扬于王庭，柔乘五刚也。孚号有厉，其危乃光也。",
+    translation:"夬卦，决断之象，刚决断柔。刚健而喜悦，决断而和谐，在王廷公开宣扬。诚信呼号而有危险，其危险使之光明彰显。",
+    modern:"此卦象征果断决断、公开除弊之时，以正压邪，不可姑息。",
+    advice:"面对不正之风，需果断决断，公开表明立场。以正义之名，堂堂正正处理问题，不可与邪恶同流合污。决断需要勇气，但以正道行事终将光明磊落。", level:"中" },
+  { num:44, name:"姤",  symbol:"䷫", nature:"天风", judgment:"女壮，勿用取女",
+    classical:"《彖》曰：姤，遇也，柔遇刚也，勿用取女，不可与长也。天地相遇，品物咸章也，刚遇中正，天下大行也。",
+    translation:"姤卦，邂逅之象，柔爻遇到刚爻。不可迎娶此女，不可与之长久相处。天地相遇，万物皆得彰显；刚爻遇中正，天下大道得行。",
+    modern:"此卦象征意外相遇，需谨慎辨别真伪，防范阴柔之害。",
+    advice:"意外的相遇或机会需要谨慎辨别，不可被表面的美好所迷惑。保持清醒判断，以理智而非冲动做决定。守住内心正道，不为外在诱惑所动。", level:"注意" },
+  { num:45, name:"萃",  symbol:"䷬", nature:"泽地", judgment:"亨，王假有庙，利见大人",
+    classical:"《彖》曰：萃，聚也，顺以说，刚中而应，故聚也。王假有庙，致孝享也，利见大人亨，聚以正也。",
+    translation:"萃卦，聚集之象。以顺从而喜悦，刚爻居中有所应和，故而聚集。王者到达宗庙，奉献孝道祭享。以正道聚集众人。",
+    modern:"此卦象征凝聚人心、团结众志、共同奋进之时。",
+    advice:"此时人心向聚，是凝聚力量的好时机。以诚信为基础，广泛团结志同道合者，共同努力。举行适当的仪式或活动增强团体凝聚力，众志成城方能成就大事。", level:"吉" },
+  { num:46, name:"升",  symbol:"䷭", nature:"地风", judgment:"元亨，用见大人勿恤，南征吉",
+    classical:"《彖》曰：柔以时升，巽而顺，刚中而应，是以大亨。用见大人勿恤，有庆也。南征吉，志行也。",
+    translation:"升卦，柔爻顺时上升，顺从而和谐，刚中有应，因此大为亨通。利于见大人而无需忧虑，是有所庆贺之象。南方征进吉祥，志向得以实行。",
+    modern:"此卦象征循序渐进、稳步上升之时，如木生于地，向上生长。",
+    advice:"脚踏实地，循序渐进，稳步向上。此时得贵人相助，宜主动拜访有能力之人请教。保持谦逊上进之心，以正道前进，稳健的进步比急功近利更能走得长远。", level:"吉" },
+  { num:47, name:"困",  symbol:"䷮", nature:"泽水", judgment:"亨，贞大人吉无咎",
+    classical:"《彖》曰：困，刚揜也，险以说，困而不失其所亨，其唯君子乎？贞大人吉，以刚中也；有言不信，尚口乃穷也。",
+    translation:"困卦，刚爻被遮蔽。险难中仍能喜悦，困穷而不失其亨通之道，这只有君子才能做到！守正大人得吉，因为刚中之道。",
+    modern:"此卦象征身陷困境却能守正不屈，君子之风在逆境中彰显。",
+    advice:"正处困境，但困境正是磨砺意志的时刻。保持内心的平静与正气，以行动而非言辞证明自己的价值。君子不因困境而失节，坚守品德，终将走出困境迎来光明。", level:"注意" },
+  { num:48, name:"井",  symbol:"䷯", nature:"水风", judgment:"改邑不改井，无丧无得",
+    classical:"《彖》曰：巽乎水而上水，井，井养而不穷也。改邑不改井，乃以刚中也。汔至亦未繘井，未有功也，羸其瓶，是以凶也。",
+    translation:"井卦，顺从地进入水中而汲水上来，如井之象，井能滋养而不穷竭。迁移城邑而不改变水井，这是刚中之道。",
+    modern:"此卦象征取之不竭的才能与智慧，持续学习以滋养众人。",
+    advice:"不断提升自身价值，如井水滋养众人。持续学习，深化专业，以知识和才能服务他人。真正的价值在于能够持续奉献，修身进德，日积月累终成大器。", level:"中" },
+  { num:49, name:"革",  symbol:"䷰", nature:"泽火", judgment:"己日乃孚，元亨利贞悔亡",
+    classical:"《彖》曰：革，水火相息，二女同居，其志不相得，曰革。己日乃孚，革而信之，文明以说，大亨以正，革而当，其悔乃亡。",
+    translation:"革卦，水与火相互消息，变革而使人信服，以文明喜悦之道，大亨通守正，变革恰当，悔恨因此消亡。",
+    modern:"此卦象征顺天应人的变革更新，破旧立新，迎接崭新时代。",
+    advice:"变革的时机已到，需顺应民心与天道进行彻底改革。变革需要充分准备，时机成熟再行动，以文明有序之方式推进，争取最广泛的支持，革新必将带来新生。", level:"中" },
+  { num:50, name:"鼎",  symbol:"䷱", nature:"火风", judgment:"元吉亨",
+    classical:"《彖》曰：鼎，象也，以木巽火，亨饪也，圣人亨以享上帝，而大亨以养圣贤，巽而耳目聪明，柔进而上行，得中而应乎刚，是以元亨。",
+    translation:"鼎卦，鼎之象，以木顺从于火，烹饪之象。圣人用鼎烹饪以祭享上帝，大力烹饪以养育圣贤，因此元始大吉亨通。",
+    modern:"此卦象征文明鼎盛、新秩序建立之时，以礼法治理，成就盛世。",
+    advice:"建立新的秩序与制度，巩固根基。以文明礼法养育贤才，广纳良言，尊重专业人才。新秩序的建立需要耐心与智慧，以正道治理方能长治久安。", level:"大吉" },
+  { num:51, name:"震",  symbol:"䷲", nature:"雷",   judgment:"亨，震来虩虩，笑言哑哑",
+    classical:"《彖》曰：震，亨，震来虩虩，恐致福也；笑言哑哑，后有则也。震惊百里，惊远而惧迩也。",
+    translation:"震卦，亨通。震雷来临令人惧怕，因恐惧而招来福祉；笑言哑哑，之后行事有法则。震动百里，使远处惊动而近处惧怕。",
+    modern:"此卦象征突如其来的震动与变化，在惊恐中保持冷静，化危为机。",
+    advice:"面对突如其来的变化或打击，保持镇定从容。震惊之后，以敬畏之心反思，调整方向。危机往往是转机，以冷静智慧应对突变，反而能从中获得意想不到的福祉。", level:"中" },
+  { num:52, name:"艮",  symbol:"䷳", nature:"山",   judgment:"艮其背，不获其身",
+    classical:"《彖》曰：艮，止也，时止则止，时行则行，动静不失其时，其道光明，艮其止，止其所也。",
+    translation:"艮卦，止之象。该止时就止，该行时就行，动静皆不失其时，其道光明。艮的停止，是停止于适当的位置。",
+    modern:"此卦象征知止之智慧，适可而止，动静合宜，修身内省。",
+    advice:"懂得何时停止与何时前进是最高的智慧。此时宜静下心来内省，适可而止，不强求，不勉强。修身养性，沉淀积累，等待适当时机再行动。", level:"中" },
+  { num:53, name:"渐",  symbol:"䷴", nature:"风山", judgment:"女归吉，利贞",
+    classical:"《彖》曰：渐之进也，女归吉也，进得位，往有功也，进以正，可以正邦也，其位刚得中也，止而巽，动不穷也。",
+    translation:"渐卦，渐进之象。女子出嫁吉祥，渐进而得位，前往必有功效。以正道渐进，可以匡正邦国。",
+    modern:"此卦象征循序渐进、水到渠成之道，如鸿雁按时迁徙，自有其序。",
+    advice:"循序渐进，按部就班，不可急于求成。如鸿雁迁徙有序，每一步都要踏实稳健。稳步前进虽然看似缓慢，但根基牢固，终将水到渠成，成就持久之业。", level:"吉" },
+  { num:54, name:"归妹",symbol:"䷵", nature:"雷泽", judgment:"征凶，无攸利",
+    classical:"《彖》曰：归妹，天地之大义也，天地不交而万物不兴，归妹人之终始也，说以动，所归妹也，征凶，位不当也，无攸利，柔乘刚也。",
+    translation:"归妹卦，天地间的大义。天地不相交则万物不能兴盛，归妹是人生终始之事。征进有凶险，是因为位置不当；没有什么有利，是因为柔爻驾驭刚爻。",
+    modern:"此卦提示行事名不正则言不顺，需遵守规则，不可仓促行事。",
+    advice:"当前行事名分不正，强行推进恐有阻碍。宜先确立正当名分，遵守规则程序，等待合适时机再行动。欲速则不达，以正当方式进行，反而能顺利达成目标。", level:"注意" },
+  { num:55, name:"丰",  symbol:"䷶", nature:"雷火", judgment:"亨，王假之，勿忧宜日中",
+    classical:"《彖》曰：丰，大也，明以动，故丰，王假之，尚大也，勿忧宜日中，宜照天下也，日中则昃，月盈则食，天地盈虚，与时消息，而况于人乎？",
+    translation:"丰卦，丰大之象。以光明而行动，故丰盛。无需忧虑，宜如日中天，普照天下。日到中天则开始偏斜，月圆则开始亏缺，天地盈虚与时消长。",
+    modern:"此卦象征鼎盛丰收之时，但需居安思危，防盛极而衰。",
+    advice:"正处于事业鼎盛时期，如日当中天。此时宜广施恩惠，回馈社会，但更需居安思危。盛极必衰是自然规律，在丰盛之时为将来做好准备，方能保持长久的昌盛。", level:"吉" },
+  { num:56, name:"旅",  symbol:"䷷", nature:"火山", judgment:"小亨，旅贞吉",
+    classical:"《彖》曰：旅，小亨，柔得中乎外而顺乎刚，止而丽乎明，是以小亨，旅贞吉也。旅之时义大矣哉！",
+    translation:"旅卦，小有亨通。柔爻在外卦得中而顺从刚爻，止而附丽于光明，因此小有亨通，旅行守正得吉。",
+    modern:"此卦象征羁旅在外、谨慎处世之时，以礼仪和谦逊化解陌生环境。",
+    advice:"身处陌生环境，需谨小慎微，以礼待人。不可轻举妄动，保持谦逊低调，广结善缘而不树敌。以开放心态适应新环境，小心谨慎是旅途平安的保障。", level:"中" },
+  { num:57, name:"巽",  symbol:"䷸", nature:"风",   judgment:"小亨，利有攸往，利见大人",
+    classical:"《彖》曰：重巽以申命，刚巽乎中正而志行，柔皆顺乎刚，是以小亨，利有攸往，利见大人。",
+    translation:"巽卦，重巽以申明命令，刚爻巽顺于中正而志向得行，柔爻皆顺从于刚，因此小有亨通，利于有所前往，利于见到大人。",
+    modern:"此卦象征顺从谦逊、润物无声之道，以柔顺方式潜移默化影响他人。",
+    advice:"以谦逊顺从之道处世，潜移默化影响周围。不强求，顺势而为，以柔克刚。此时拜访有能力的贵人，谦逊请教必有收获。细水长流的影响力胜过强行推进。", level:"吉" },
+  { num:58, name:"兑",  symbol:"䷹", nature:"泽",   judgment:"亨利贞",
+    classical:"《彖》曰：兑，说也，刚中而柔外，说以利贞，是以顺乎天而应乎人，说以先民，民忘其劳，说以犯难，民忘其死，说之大，民劝矣哉！",
+    translation:"兑卦，喜悦之象。刚居中而柔在外，以喜悦守正，因此顺应天道而回应人心。以喜悦引导民众，民众忘记劳苦；以喜悦面对艰难，民众忘记死亡。",
+    modern:"此卦象征真诚喜悦、和乐处世之道，以正面能量感染并鼓励众人。",
+    advice:"以真诚喜悦之心待人接物，正面积极的态度具有强大感染力。广结善缘，以和乐之心面对挑战，你的喜悦将鼓励周围的人。守正而喜悦，诸事皆能顺遂。", level:"吉" },
+  { num:59, name:"涣",  symbol:"䷺", nature:"风水", judgment:"亨，王假有庙，利涉大川",
+    classical:"《彖》曰：涣亨，刚来而不穷，柔得位乎外而上同，王假有庙，王乃在中也，利涉大川，乘木有功也。",
+    translation:"涣卦，亨通。刚爻来而不穷尽，柔爻在外卦得位而上与中同，王者到达宗庙，王者居于中位。利于渡越大川，乘木舟而有功效。",
+    modern:"此卦象征化解隔阂、重建沟通、涣散重聚之时。",
+    advice:"化解长期积累的隔阂与误解，重建沟通桥梁。以诚信与包容之心，将离散的力量重新整合。此时举行适当的聚会或活动，可有效凝聚人心，重建团结。", level:"吉" },
+  { num:60, name:"节",  symbol:"䷻", nature:"水泽", judgment:"亨，苦节不可贞",
+    classical:"《彖》曰：节亨，刚柔分而刚得中，苦节不可贞，其道穷也，说以行险，当位以节，中正以通，天地节而四时成，节以制度，不伤财，不害民。",
+    translation:"节卦，亨通。刚柔分明而刚居中。以喜悦行于险难，当位而有所节制，中正而得通达。天地有节律而四季成就，以节制制定制度，不损伤财物，不伤害民众。",
+    modern:"此卦象征适度节制、以制度规范之道，凡事有度方能长久。",
+    advice:"凡事保持适度，过犹不及。建立合理的规则与制度，以节制保护资源与精力。适当的节制不是限制，而是可持续发展的智慧。量入为出，有节有度，方能细水长流。", level:"中" },
+  { num:61, name:"中孚",symbol:"䷼", nature:"风泽", judgment:"豚鱼吉，利涉大川，利贞",
+    classical:"《彖》曰：中孚，柔在内而刚得中，说而巽，孚乃化邦也。豚鱼吉，信及豚鱼也；利涉大川，乘空木舟虚也；中孚以利贞，乃应乎天也。",
+    translation:"中孚卦，柔爻在内而刚爻得中，喜悦而顺从，诚信而教化邦国。连猪鱼也得吉，诚信感及猪鱼之微物；中孚守正，乃是顺应天道。",
+    modern:"此卦象征诚信感人、以信立身之最高境界，金石为开。",
+    advice:"以诚信为立身根本，真诚之心可以感动一切，甚至感及猪鱼这样的微物。诚信无需技巧，发自内心即可。建立在诚信基础上的一切关系皆能长久，以信待人，天下皆可通。", level:"大吉" },
+  { num:62, name:"小过",symbol:"䷽", nature:"雷山", judgment:"亨，利贞，可小事，不可大事",
+    classical:"《彖》曰：小过，小者过而亨也，过以利贞，与时行也，柔得中，是以小事吉也，刚失位而不中，是以不可大事也，有飞鸟之象焉，飞鸟遗之音，不宜上，宜下，大吉。",
+    translation:"小过卦，小者有所超越而亨通，超越而有利于守正，与时势共行。柔爻得中，因此小事吉祥；刚爻失位而不居中，因此不可大事。",
+    modern:"此卦象征小有超越、宜处小事之时，守分知足，谨慎行事。",
+    advice:"此时宜专注于小事的精细处理，不可好高骛远谋求大事。循序渐进，先把手边的事做好。如鸟儿宜向下而非向上，谦逊低调处事，反而能获得大吉之果。", level:"中" },
+  { num:63, name:"既济",symbol:"䷾", nature:"水火", judgment:"亨小，利贞，初吉终乱",
+    classical:"《彖》曰：既济亨，小者亨也，利贞，刚柔正而位当也，初吉，柔得中也，终止则乱，其道穷也。",
+    translation:"既济卦，亨通，小事亨通。利于守正，刚柔皆正位而得当。初始吉祥，柔爻得中。终止则混乱，是因为其道穷尽。",
+    modern:"此卦象征事已完成、功成之后需防懈怠之时，居安思危是关键。",
+    advice:"事业已有所成就，但切不可骄傲自满而懈怠。功成名就之后更需警惕，防止骄傲与松懈带来倒退。持续改进，巩固成果，居安思危，以平常心维持既有成就。", level:"中" },
+  { num:64, name:"未济",symbol:"䷿", nature:"火水", judgment:"亨，小狐汔济濡其尾",
+    classical:"《彖》曰：未济亨，柔得中也，小狐汔济，未出中也，濡其尾无攸利，不续终也，虽不当位，刚柔应也。",
+    translation:"未济卦，亨通，柔爻得中。小狐狸几乎渡过，尚未走出中间；沾湿尾巴没有利益，是不能续至终点。虽然位置不当，但刚柔相应。",
+    modern:"此卦象征事业尚未完成、需继续努力之时，终点在望，坚持是关键。",
+    advice:"距离目标只差最后一步，此时最需要谨慎坚持。切勿因为接近终点而大意，如小狐狸渡河沾湿尾巴的教训。谨慎应对最后的考验，持续努力，功成圆满指日可待。", level:"中" },
+];
+
+// ════════════════════════════════════════════════
+// 工具函数
+// ════════════════════════════════════════════════
+const LEVEL_STYLE = {
+  "大吉": { border:"rgba(200,168,75,0.6)",  bg:"rgba(200,168,75,0.14)", color:"#e8c96a" },
+  "吉":   { border:"rgba(200,168,75,0.4)",  bg:"rgba(200,168,75,0.08)", color:"#c8a84b" },
+  "中":   { border:"rgba(150,140,110,0.35)",bg:"rgba(150,140,110,0.07)",color:"#a09878" },
+  "注意": { border:"rgba(180,120,60,0.38)", bg:"rgba(180,120,60,0.08)", color:"#b07840" },
+};
+const LEVEL_LABEL = { "大吉":"大吉", "吉":"吉", "中":"中平", "注意":"宜慎" };
+
+function getHex(n) { return HEXAGRAMS[((n-1)%64+64)%64]; }
+
+function divineChar(txt) {
+  let t=0; for(const c of txt) for(let i=0;i<c.length;i++) t+=c.charCodeAt(i);
+  return getHex((((t%8)||8)-1)*8+((Math.floor(t/8)%8)||8));
+}
+function divineNum(n)  { return getHex(n); }
+function divineCoins(throws) {
+  let n=0;
+  for(let i=0;i<6;i++) { const s=throws[i].reduce((a,b)=>a+b,0); if(s>=7) n+=1<<i; }
+  return getHex((n%64)+1);
+}
+function divineTime(d) {
+  const y=d.getFullYear(),m=d.getMonth()+1,day=d.getDate(),h=d.getHours()+1;
+  return getHex(((((y+m+day)%8)||8)-1)*8+(((y+m+day+h)%8)||8));
+}
+function localNow() {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const now = new Date();
+  try {
+    const s = now.toLocaleString("en-CA",{timeZone:tz,hour12:false});
+    const [dp,tp] = s.split(", ");
+    return new Date(`${dp}T${tp}`);
+  } catch { return now; }
+}
+function fmtDT(d) {
+  const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function detectedTZ() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return "本地时区"; }
+}
+
+// ════════════════════════════════════════════════
+// 渲染工具
+// ════════════════════════════════════════════════
+function el(tag, attrs={}, ...children) {
+  const e = document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs)) {
+    if(k==="style" && typeof v==="object") Object.assign(e.style,v);
+    else if(k.startsWith("on")) e.addEventListener(k.slice(2).toLowerCase(),v);
+    else e.setAttribute(k,v);
+  }
+  for(const c of children) {
+    if(c==null) continue;
+    e.appendChild(typeof c==="string" ? document.createTextNode(c) : c);
+  }
+  return e;
+}
+
+// ════════════════════════════════════════════════
+// 应用状态
+// ════════════════════════════════════════════════
+let state = { page:"home", method:null, result:null, coinThrows:[], coinSpinning:false };
+
+function setState(patch) { Object.assign(state,patch); render(); }
+
+// ════════════════════════════════════════════════
+// 页面渲染
+// ════════════════════════════════════════════════
+function render() {
+  const content = document.getElementById("content");
+  const backBtn = document.getElementById("backBtn");
+  content.innerHTML = "";
+  if(state.page==="home") {
+    backBtn.style.visibility="hidden";
+    content.appendChild(renderHome());
+  } else if(state.page==="method") {
+    backBtn.style.visibility="visible";
+    content.appendChild(renderMethod());
+  } else if(state.page==="result") {
+    backBtn.style.visibility="visible";
+    content.appendChild(renderResult());
+  }
+}
+
+// ── 首页 ──────────────────────────────────────────────────
+function renderHome() {
+  const wrap = el("div",{class:"fade-in"});
+  const hero = el("div",{class:"home-hero"});
+  hero.appendChild(el("span",{class:"home-symbol"},"☯"));
+  hero.appendChild(el("div",{class:"home-title"},"易经卜算"));
+  hero.appendChild(el("div",{class:"home-sub"},"观天地之象 · 明吉凶之机"));
+  wrap.appendChild(hero);
+
+  const methods = [
+    {id:"char",  icon:"字", label:"测字起卦", desc:"以汉字推演卦象"},
+    {id:"number",icon:"数", label:"测数起卦", desc:"以数字阴阳推演卦象"},
+    {id:"coins", icon:"钱", label:"铜钱六爻", desc:"模拟三枚铜钱六次投掷"},
+    {id:"time",  icon:"时", label:"梅花易数", desc:"以当下时间推演卦象"},
+  ];
+  const list = el("div",{class:"method-list"});
+  methods.forEach((m,i)=>{
+    const btn = el("button",{class:"method-btn",style:{animationDelay:`${i*0.08}s`}});
+    btn.appendChild(el("div",{class:"method-icon"},m.icon));
+    const info = el("div",{});
+    info.appendChild(el("div",{class:"method-label"},m.label));
+    info.appendChild(el("div",{class:"method-desc"},m.desc));
+    btn.appendChild(info);
+    btn.appendChild(el("div",{class:"method-arrow"},"›"));
+    btn.addEventListener("click",()=>{
+      setState({page:"method",method:m.id,result:null,coinThrows:[],coinSpinning:false});
+    });
+    list.appendChild(btn);
+  });
+  wrap.appendChild(list);
+  wrap.appendChild(el("div",{class:"home-footer"},"── 六十四卦 · 穷尽天地之变 ──"));
+  return wrap;
+}
+
+// ── 输入页 ────────────────────────────────────────────────
+function renderMethod() {
+  const wrap = el("div",{class:"fade-in"});
+
+  if(state.method==="char") {
+    wrap.appendChild(sectionHead("测字起卦","心中存问，输入一字或数字，静心以待"));
+    const inp = el("input",{type:"text",class:"text-input",placeholder:"请输入文字…",maxlength:"4"});
+    wrap.appendChild(inp);
+    const btn = el("button",{class:"main-btn",disabled:""},"起 卦");
+    inp.addEventListener("input",()=>{ btn.disabled=!inp.value.trim(); });
+    btn.addEventListener("click",()=>{
+      if(!inp.value.trim()) return;
+      setState({page:"result",result:divineChar(inp.value.trim())});
+    });
+    wrap.appendChild(btn);
+  }
+
+  if(state.method==="number") {
+    wrap.appendChild(sectionHead("测数起卦","随心所动，输入一个数字，以数演卦"));
+    const inp = el("input",{type:"number",class:"text-input",placeholder:"请输入数字…",style:{fontSize:"22px"}});
+    wrap.appendChild(inp);
+    const btn = el("button",{class:"main-btn",disabled:""},"起 卦");
+    inp.addEventListener("input",()=>{ btn.disabled=!inp.value; });
+    btn.addEventListener("click",()=>{
+      if(!inp.value) return;
+      setState({page:"result",result:divineNum(parseInt(inp.value))});
+    });
+    wrap.appendChild(btn);
+  }
+
+  if(state.method==="coins") {
+    wrap.appendChild(sectionHead("铜钱六爻","心中存问，点击铜钱逐爻投掷，共六次"));
+    wrap.appendChild(renderCoins());
+  }
+
+  if(state.method==="time") {
+    wrap.appendChild(sectionHead("梅花易数","以起念之时为基，年月日时推演卦象"));
+
+    // 时区侦测
+    const badge = el("div",{class:"tz-badge"});
+    badge.appendChild(el("span",{class:"tz-badge-icon"},"◎"));
+    const binfo = el("div",{});
+    binfo.appendChild(el("div",{class:"tz-badge-label"},"已自动侦测时区"));
+    binfo.appendChild(el("div",{class:"tz-badge-value"},detectedTZ()));
+    badge.appendChild(binfo);
+    wrap.appendChild(badge);
+
+    wrap.appendChild(el("div",{class:"field-label"},"起卦时间（可手动调整）"));
+    const inp = el("input",{type:"datetime-local",class:"text-input",value:fmtDT(localNow()),style:{fontSize:"14px",letterSpacing:"2px"}});
+    wrap.appendChild(inp);
+    const btn = el("button",{class:"main-btn"},"起 卦");
+    btn.addEventListener("click",()=>{
+      const d = inp.value ? new Date(inp.value) : localNow();
+      setState({page:"result",result:divineTime(d)});
+    });
+    wrap.appendChild(btn);
+  }
+  return wrap;
+}
+
+function sectionHead(title,sub) {
+  const d = el("div",{class:"section-head"});
+  d.appendChild(el("div",{class:"section-title"},title));
+  d.appendChild(el("div",{class:"section-sub"},sub));
+  return d;
+}
+
+// ── 铜钱六爻 ──────────────────────────────────────────────
+function renderCoins() {
+  const wrap = el("div",{class:"coin-wrap"});
+  const status = el("div",{class:"coin-status"});
+  const coin   = el("button",{class:"coin-btn"},"投掷");
+  const list   = el("div",{class:"yao-list"});
+
+  function updateStatus() {
+    const n = state.coinThrows.length;
+    status.textContent = n<6 ? `投掷第 ${n+1} 爻，共六爻` : "六爻已毕，正在推算…";
+  }
+  updateStatus();
+
+  function yaoInfo(coins) {
+    const s=coins.reduce((a,b)=>a+b,0);
+    if(s===9) return {t:"老阳（变）─────",c:"#e8c96a"};
+    if(s===8) return {t:"少阴　── ──",   c:"#9a8a60"};
+    if(s===7) return {t:"少阳　─────",   c:"#c8a84b"};
+    return              {t:"老阴（变）── ──",c:"#7a7060"};
+  }
+
+  function addYaoRow(coins,idx) {
+    const {t,c} = yaoInfo(coins);
+    const row = el("div",{class:"yao-row"});
+    row.appendChild(el("span",{class:"yao-idx"},`第${idx+1}爻`));
+    row.appendChild(el("span",{class:"yao-face"},coins.map(x=>x===3?"正":"背").join("·")));
+    row.appendChild(el("span",{class:"yao-type",style:{color:c}},t));
+    list.appendChild(row);
+  }
+
+  coin.addEventListener("click",()=>{
+    if(state.coinThrows.length>=6||state.coinSpinning) return;
+    setState({coinSpinning:true});
+    coin.classList.add("spinning");
+    setTimeout(()=>{
+      const coins=[Math.random()>.5?3:2,Math.random()>.5?3:2,Math.random()>.5?3:2];
+      const next=[...state.coinThrows,coins];
+      state.coinThrows=next;
+      state.coinSpinning=false;
+      coin.classList.remove("spinning");
+      addYaoRow(coins,next.length-1);
+      updateStatus();
+      if(next.length===6){
+        coin.disabled=true;
+        coin.textContent="完";
+        setTimeout(()=>setState({page:"result",result:divineCoins(next)}),600);
+      }
+    },650);
+  });
+
+  wrap.appendChild(status);
+  wrap.appendChild(coin);
+  wrap.appendChild(list);
+  return wrap;
+}
+
+// ── 结果页 ────────────────────────────────────────────────
+function renderResult() {
+  const h = state.result;
+  const lv = LEVEL_STYLE[h.level]||LEVEL_STYLE["中"];
+  const label = LEVEL_LABEL[h.level]||"中平";
+  const wrap = el("div",{class:"fade-in",style:{paddingTop:"20px"}});
+
+  // 卦头
+  const head = el("div",{class:"result-head",style:{borderColor:lv.border}});
+  head.appendChild(el("div",{class:"result-glow",style:{backgroundImage:`radial-gradient(ellipse at center, ${lv.bg} 0%, transparent 70%)`}}));
+  const badge = el("div",{class:"level-badge",style:{border:`1px solid ${lv.border}`,color:lv.color}},label);
+  head.appendChild(badge);
+  head.appendChild(el("div",{class:"hex-num"},`第 ${h.num} 卦`));
+  head.appendChild(el("div",{class:"hex-sym",style:{color:"#c8a84b",textShadow:`0 0 24px ${lv.border}`,fontFamily:"serif"}},h.symbol));
+  head.appendChild(el("div",{class:"hex-name",style:{color:lv.color}},h.name+"卦"));
+  head.appendChild(el("div",{class:"hex-nature"},h.nature+"之象"));
+
+  // 爻线
+  const yaoLines = el("div",{class:"yao-lines"});
+  const bits = h.num.toString(2).padStart(6,"0").split("").map(Number);
+  bits.forEach((b,i)=>{
+    const row = el("div",{class:"yao-line",style:{animation:`yaoAppear 0.4s ease ${i*0.1}s both`}});
+    if(b===0){
+      row.appendChild(el("div",{class:"yao-bar half"}));
+      row.appendChild(el("div",{class:"yao-gap"}));
+      row.appendChild(el("div",{class:"yao-bar half"}));
+    } else {
+      row.appendChild(el("div",{class:"yao-bar full"}));
+    }
+    yaoLines.appendChild(row);
+  });
+  head.appendChild(yaoLines);
+
+  const jd = el("div",{class:"hex-judgment"});
+  jd.appendChild(el("span",{class:"hex-judgment-label"},"卦辞  "));
+  jd.appendChild(document.createTextNode(h.judgment));
+  head.appendChild(jd);
+  wrap.appendChild(head);
+
+  // Tabs
+  const tabs = ["现代释义","古文原典","行动指引"];
+  let activeTab=0;
+  const tabRow = el("div",{class:"tabs"});
+  const panel  = el("div",{class:"tab-panel"});
+
+  function renderPanel(idx) {
+    panel.innerHTML="";
+    panel.style.animation="none";
+    void panel.offsetWidth;
+    panel.style.animation="fadeIn 0.3s ease";
+    if(idx===0){
+      const ml = state.method==="char"?"【测字】":state.method==="number"?"【测数】":state.method==="coins"?"【铜钱六爻】":"【梅花易数】";
+      panel.appendChild(el("div",{class:"tab-section-label"},ml+" 卦象含义"));
+      panel.appendChild(el("div",{class:"tab-text"},h.modern));
+    } else if(idx===1){
+      panel.appendChild(el("div",{class:"tab-section-label"},"古文原典"));
+      panel.appendChild(el("div",{class:"classical-block"},h.classical));
+      panel.appendChild(el("div",{class:"tab-section-label"},"白话翻译"));
+      panel.appendChild(el("div",{class:"tab-text"},h.translation));
+    } else {
+      panel.appendChild(el("div",{class:"tab-section-label"},"处世指引"));
+      panel.appendChild(el("div",{class:"advice-block",style:{border:`1px solid ${lv.border}`,background:lv.bg,color:lv.color}},h.advice));
+      panel.appendChild(el("div",{class:"advice-footer"},"— 易有太极，是生两仪，两仪生四象，四象生八卦 —"));
+    }
+  }
+
+  tabs.forEach((t,i)=>{
+    const btn=el("button",{class:i===0?"tab-btn active":"tab-btn"},t);
+    btn.addEventListener("click",()=>{
+      if(activeTab===i) return;
+      activeTab=i;
+      tabRow.querySelectorAll(".tab-btn").forEach((b,j)=>b.className=j===i?"tab-btn active":"tab-btn");
+      renderPanel(i);
+    });
+    tabRow.appendChild(btn);
+  });
+  renderPanel(0);
+  wrap.appendChild(tabRow);
+  wrap.appendChild(panel);
+
+  // 重新卜算
+  const reset=el("button",{class:"main-btn ghost"},"重新卜算");
+  reset.addEventListener("click",()=>setState({page:"home",method:null,result:null}));
+  wrap.appendChild(reset);
+  return wrap;
+}
+
+// ════════════════════════════════════════════════
+// 返回按钮
+// ════════════════════════════════════════════════
+document.getElementById("backBtn").addEventListener("click",()=>{
+  if(state.page==="result") setState({page:"method",result:null,coinThrows:[],coinSpinning:false});
+  else setState({page:"home",method:null});
+});
+
+// 初始渲染
+render();
+</script>
+</body>
+</html>
